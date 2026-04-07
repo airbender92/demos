@@ -14,4 +14,16 @@ System.import('lodash').then((_) => {
     <p>✅ SystemJS 已加载</p>
     <p>✅ importmap 已生效</p>
   `;
-});
+
+  // 以下 API 全都需要 polyfill！
+  const arr = [1,2,3];
+  console.log(arr.includes(2)); // ES7
+
+  const obj = { a:1 };
+  console.log(Object.values(obj)); // ES2017
+
+  async function test() { // async/await 需要 regenerator
+    await new Promise(resolve => resolve('ok'));
+  }
+  console.log(test());
+ });
