@@ -1,0 +1,10 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+        // 自动检测你的代码用到了哪些 ES6+ API ，并根据需要注入对应的 polyfill 不全部打包
+      "useBuiltIns": "usage",
+      // 使用 core-js@3（最强 polyfill
+      "corejs": 3
+    }]
+  ]
+}

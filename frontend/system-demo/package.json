@@ -1,0 +1,28 @@
+{
+  "name": "system-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/bundle.js",
+  "module": "dist/bundle.js",
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack serve --port 3002 --open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "core-js": "^3.49.0",
+    "regenerator-runtime": "^0.14.1",
+    "systemjs": "^6.15.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.2",
+    "babel-loader": "^10.1.1",
+    "html-webpack-plugin": "^5.6.6",
+    "webpack": "^5.105.4",
+    "webpack-cli": "^7.0.2",
+    "webpack-dev-server": "^5.2.3"
+  }
+}

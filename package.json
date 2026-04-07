@@ -1,0 +1,14 @@
+{
+  "name": "demos-monorepo",
+  "version": "1.0.0",
+  "description": "Demos monorepo with multiple projects",
+  "private": true,
+  "scripts": {
+    "install:all": "pnpm install",
+    "build:all": "pnpm run build --filter \"*\"",
+    "test:all": "pnpm run test --filter \"*\""
+  },
+  "devDependencies": {
+    "pnpm": "^8.0.0"
+  }
+}

@@ -1,0 +1,6 @@
+packages:
+  - 'frontend/*'
+  - 'backend/*'
+  - 'fullstack/*'
+  - 'native/*'
+  - 'tools/*'
