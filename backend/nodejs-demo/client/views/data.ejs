@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protected Resource - OAuth2 Client</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-bottom: 20px; }
+    p { margin-bottom: 10px; color: #666; line-height: 1.6; }
+    .resource-data { background: #e8f5e9; padding: 15px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #4CAF50; }
+    .resource-data pre { background: white; padding: 10px; border-radius: 4px; overflow-x: auto; margin-top: 10px; }
+    a { color: #2196F3; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Protected Resource Data</h1>
+    <div class="resource-data">
+      <p><strong>Name:</strong> <%= resource.resource.name %></p>
+      <p><strong>Owner:</strong> <%= resource.resource.owner %></p>
+      <p><strong>Data:</strong> <%= resource.resource.data %></p>
+      <p><strong>Timestamp:</strong> <%= resource.resource.timestamp %></p>
+      <hr style="margin: 10px 0; border: none; border-top: 1px solid #ccc;">
+      <p><strong>Accessed By:</strong> <%= resource.accessed_by %></p>
+      <p><strong>User:</strong> <%= resource.user %></p>
+      <p><strong>Accessed At:</strong> <%= resource.accessed_at %></p>
+    </div>
+    <pre><%= JSON.stringify(resource, null, 2) %></pre>
+    <br>
+    <a href="/">Return to Home</a>
+  </div>
+</body>
+</html>

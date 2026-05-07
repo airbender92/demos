@@ -1,0 +1,18 @@
+{
+  "name": "oauth2-demo",
+  "version": "1.0.0",
+  "description": "OAuth 2.0 Authorization Code Flow Demo",
+  "main": "index.js",
+  "scripts": {
+    "auth-server": "node auth-server/server.js",
+    "client": "node client/server.js",
+    "resource-server": "node resource-server/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ejs": "^3.1.9",
+    "randomstring": "^1.3.0",
+    "qs": "^6.11.2",
+    "sync-request": "^6.1.0"
+  }
+}

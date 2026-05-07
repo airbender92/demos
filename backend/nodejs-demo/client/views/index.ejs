@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth2 Client</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-bottom: 20px; }
+    p { margin-bottom: 15px; color: #666; line-height: 1.6; }
+    .buttons { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+    a.button { display: block; padding: 12px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px; text-align: center; }
+    a.button:hover { background: #1976D2; }
+    .token-info { background: #f0f8ff; padding: 15px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #2196F3; }
+    .token-info code { word-break: break-all; font-size: 12px; }
+    .token-label { font-weight: bold; color: #333; margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>OAuth2 Client Application</h1>
+    <p>This is the OAuth2 client demo application.</p>
+    <div class="buttons">
+      <a href="/authorize" class="button">Get OAuth Token</a>
+      <a href="/fetch_resource" class="button">Fetch Protected Resource</a>
+    </div>
+    <% if (access_token) { %>
+      <div class="token-info">
+        <p class="token-label">Access Token:</p>
+        <code><%= access_token %></code>
+        <% if (refresh_token) { %>
+          <p class="token-label" style="margin-top: 15px;">Refresh Token:</p>
+          <code><%= refresh_token %></code>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>
