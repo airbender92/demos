@@ -5,12 +5,14 @@ import { defineStore } from 'pinia'
 interface AppState {
   sidebarCollapsed: boolean
   loading: boolean
+  locale: string
 }
 
 export const useAppStore = defineStore('app', {
   state: (): AppState => ({
     sidebarCollapsed: false,
     loading: false,
+    locale: localStorage.getItem('vue_demo_locale') || 'zh',
   }),
 
   actions: {
@@ -27,6 +29,12 @@ export const useAppStore = defineStore('app', {
     /** 设置全局加载状态 */
     setLoading(loading: boolean): void {
       this.loading = loading
+    },
+
+    /** 切换语言 */
+    setLocale(locale: string): void {
+      this.locale = locale
+      localStorage.setItem('vue_demo_locale', locale)
     },
   },
 })

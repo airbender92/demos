@@ -45,6 +45,26 @@
             </el-breadcrumb>
           </div>
           <div class="header-right">
+            <!-- 语言切换 -->
+            <el-dropdown trigger="click" @command="handleLangChange">
+              <div class="lang-switch">
+                <el-icon><Monitor /></el-icon>
+                <span class="lang-text">{{ currentLangLabel }}</span>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="lang in langOptions"
+                    :key="lang.value"
+                    :command="lang.value"
+                    :disabled="lang.value === appStore.locale"
+                  >
+                    {{ lang.label }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+
             <el-dropdown trigger="click" @command="handleCommand">
               <div class="user-info">
                 <el-avatar :size="28" class="user-avatar">
@@ -54,8 +74,8 @@
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                  <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+                  <el-dropdown-item command="profile">{{ t('common.profile') }}</el-dropdown-item>
+                  <el-dropdown-item command="logout" divided>{{ t('common.logout') }}</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
@@ -78,15 +98,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/store/modules/app'
 import { useMenuStore } from '@/store/modules/menu'
 import { useUserStore } from '@/store/modules/user'
 import { Fold, Expand, Monitor } from '@element-plus/icons-vue'
+import { i18n, elementLocales } from '@/i18n'
+import { ElMessage } from 'element-plus'
 
 interface BreadcrumbItem {
   path: string
   title: string
 }
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -107,6 +132,31 @@ const breadcrumbs = computed<BreadcrumbItem[]>(() => {
     title: item.meta.title as string,
   }))
 })
+
+/** 语言选项 */
+const langOptions = [
+  { label: '中文', value: 'zh' },
+  { label: 'English', value: 'en' },
+]
+
+const currentLangLabel = computed(() => {
+  const opt = langOptions.find((l) => l.value === appStore.locale)
+  return opt?.label || '中文'
+})
+
+/** 切换语言 */
+function handleLangChange(lang: string) {
+  i18n.global.locale.value = lang as 'zh' | 'en'
+  appStore.setLocale(lang)
+  // 同步切换 Element Plus locale
+  const elementLocale = elementLocales[lang]
+  if (elementLocale) {
+    // Element Plus 重新设置 locale
+    // 通过重新配置实现，实际项目中可以使用 provide/inject 方案
+    window.location.reload()
+  }
+  ElMessage.success(t('toast.switchLangSuccess'))
+}
 
 function toggleSidebar() {
   appStore.toggleSidebar()
@@ -198,6 +248,27 @@ async function handleCommand(command: string) {
   }
 
   .header-right {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+
+    .lang-switch {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: $text-regular;
+      transition: color 0.2s;
+
+      &:hover {
+        color: $primary-color;
+      }
+
+      .lang-text {
+        font-size: 14px;
+      }
+    }
+
     .user-info {
       display: flex;
       align-items: center;

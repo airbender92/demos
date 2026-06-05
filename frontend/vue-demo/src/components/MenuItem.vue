@@ -2,7 +2,7 @@
   <el-sub-menu v-if="menu.children?.length" :index="menu.path">
     <template #title>
       <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
-      <span>{{ menu.title }}</span>
+      <span>{{ $t(menu.title) }}</span>
     </template>
     <menu-item
       v-for="child in menu.children"
@@ -12,7 +12,7 @@
   </el-sub-menu>
   <el-menu-item v-else :index="menu.path">
     <el-icon v-if="menu.icon"><component :is="menu.icon" /></el-icon>
-    <template #title>{{ menu.title }}</template>
+    <template #title>{{ $t(menu.title) }}</template>
   </el-menu-item>
 </template>
 

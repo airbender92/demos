@@ -1,7 +1,7 @@
 // src/store/modules/user.ts
 
 import { defineStore } from 'pinia'
-import { login as loginApi, getUserInfo as getUserInfoApi, logout as logoutApi } from '@/api/modules/auth'
+import { login as loginApi, getUserInfo as getUserInfoApi, logout as logoutApi, ssoVerify as ssoVerifyApi } from '@/api/modules/auth'
 import { setToken, removeToken, setUserInfo, getUserInfo } from '@/utils/auth'
 import router from '@/router'
 
@@ -35,6 +35,14 @@ export const useUserStore = defineStore('user', {
     /** 登录 */
     async login(credentials: Credentials): Promise<void> {
       const { data } = await loginApi(credentials)
+      this.token = data.token
+      setToken(data.token)
+      await this.fetchUserInfo()
+    },
+
+    /** SSO 登录 */
+    async ssoLogin(ssoToken: string): Promise<void> {
+      const { data } = await ssoVerifyApi(ssoToken)
       this.token = data.token
       setToken(data.token)
       await this.fetchUserInfo()

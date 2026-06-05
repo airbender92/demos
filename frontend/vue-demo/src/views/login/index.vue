@@ -2,8 +2,8 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <h1 class="login-title">Vue Demo</h1>
-        <p class="login-subtitle">企业级管理后台</p>
+        <h1 class="login-title">{{ t('login.title') }}</h1>
+        <p class="login-subtitle">{{ t('login.subtitle') }}</p>
       </div>
       <el-form
         ref="formRef"
@@ -15,7 +15,7 @@
         <el-form-item prop="username">
           <el-input
             v-model="loginForm.username"
-            placeholder="请输入账号"
+            :placeholder="t('login.usernamePlaceholder')"
             size="large"
             :prefix-icon="User"
           />
@@ -24,14 +24,14 @@
           <el-input
             v-model="loginForm.password"
             type="password"
-            placeholder="请输入密码"
+            :placeholder="t('login.passwordPlaceholder')"
             size="large"
             :prefix-icon="Lock"
             show-password
           />
         </el-form-item>
         <el-form-item>
-          <el-checkbox v-model="rememberMe">记住我</el-checkbox>
+          <el-checkbox v-model="rememberMe">{{ t('login.rememberMe') }}</el-checkbox>
         </el-form-item>
         <el-form-item>
           <el-button
@@ -41,24 +41,27 @@
             :loading="loading"
             @click="handleLogin"
           >
-            登 录
+            {{ t('login.loginBtn') }}
           </el-button>
         </el-form-item>
       </el-form>
       <div class="login-footer">
-        <el-link type="info" @click="handleSSOLogin">单点登录</el-link>
+        <el-link type="info" @click="handleSSOLogin">{{ t('login.ssoLogin') }}</el-link>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { User, Lock } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import type { FormInstance } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/store/modules/user'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const route = useRoute()
@@ -82,11 +85,11 @@ if (savedUsername) {
 
 const rules = reactive<FormRules>({
   username: [
-    { required: true, message: '请输入账号', trigger: 'blur' },
+    { required: true, message: t('login.usernameRequired'), trigger: 'blur' },
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能小于6位', trigger: 'blur' },
+    { required: true, message: t('login.passwordRequired'), trigger: 'blur' },
+    { min: 6, message: t('login.passwordMinLength'), trigger: 'blur' },
   ],
 })
 
@@ -106,12 +109,12 @@ async function handleLogin() {
       } else {
         localStorage.removeItem('vue_demo_saved_username')
       }
-      ElMessage.success('登录成功')
+      ElMessage.success(t('login.loginSuccess'))
       const redirect = (route.query.redirect as string) || '/'
       router.push(redirect)
     } catch (error: unknown) {
       const err = error as Error
-      ElMessage.error(err.message || '登录失败')
+      ElMessage.error(err.message || t('login.loginFailed'))
     } finally {
       loading.value = false
     }
@@ -123,6 +126,32 @@ function handleSSOLogin() {
   const ssoUrl = `${import.meta.env.VITE_API_BASE_URL}/sso/login?redirect=${encodeURIComponent(window.location.href)}`
   window.location.href = ssoUrl
 }
+
+/** 处理 SSO 回调 */
+async function handleSSOCallback() {
+  const ssoToken = route.query.sso_token as string
+  if (!ssoToken) return
+
+  loading.value = true
+  try {
+    await userStore.ssoLogin(ssoToken)
+    ElMessage.success(t('login.loginSuccess'))
+    const redirect = (route.query.redirect as string) || '/'
+    router.push(redirect)
+  } catch (error: unknown) {
+    const err = error as Error
+    ElMessage.error(err.message || t('login.ssoCallbackFailed'))
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  // 检查是否是 SSO 回调
+  if (route.query.sso_token) {
+    handleSSOCallback()
+  }
+})
 </script>
 
 <style scoped lang="scss">

@@ -5,11 +5,20 @@ import {
   mockGetUserInfo,
   mockGetUserMenus,
   mockLogout,
+  mockSSOVerify,
 } from '@/mock'
+import { encryptFields } from '@/utils/crypto'
 
-/** 用户登录 */
+/** 用户登录 - 自动 AES 加密参数 */
 export async function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
-  const res = await mockLogin(data.username, data.password)
+  const encrypted = encryptFields(data, ['username', 'password'])
+  const res = await mockLogin(encrypted.username, encrypted.password)
+  return { code: 200, message: 'success', data: res }
+}
+
+/** SSO 登录验证 */
+export async function ssoVerify(token: string): Promise<ApiResponse<LoginResponse>> {
+  const res = await mockSSOVerify(token)
   return { code: 200, message: 'success', data: res }
 }
 
