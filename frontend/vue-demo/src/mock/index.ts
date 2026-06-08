@@ -12,6 +12,8 @@ const mockUsers: Record<string, { password: string; info: UserInfo; token: strin
       username: 'admin',
       nickname: '管理员',
       avatar: '',
+      email: 'admin@example.com',
+      phone: '13800138000',
       roles: ['admin'],
       permissions: ['*'],
     },
@@ -24,6 +26,8 @@ const mockUsers: Record<string, { password: string; info: UserInfo; token: strin
       username: 'user',
       nickname: '普通用户',
       avatar: '',
+      email: 'user@example.com',
+      phone: '13900139000',
       roles: ['user'],
       permissions: ['dashboard:view', 'user:view'],
     },
@@ -168,4 +172,62 @@ export async function mockGetUserMenus(): Promise<MenuItem[]> {
 /** Mock: 退出登录 */
 export async function mockLogout(): Promise<void> {
   await delay()
+}
+
+/** Mock: 更新用户资料 */
+export async function mockUpdateUserProfile(data: {
+  nickname: string
+  email: string
+  phone: string
+}): Promise<UserInfo> {
+  await delay()
+
+  const info = mockUsers.admin.info
+  info.nickname = data.nickname || info.nickname
+  info.email = data.email || info.email
+  info.phone = data.phone || info.phone
+
+  return info
+}
+
+/** Mock: 修改密码 */
+export async function mockChangePassword(data: {
+  oldPassword: string
+  newPassword: string
+}): Promise<void> {
+  await delay()
+
+  // 尝试解密密码
+  let oldPassword: string, newPassword: string
+  try {
+    oldPassword = decrypt(data.oldPassword)
+    newPassword = decrypt(data.newPassword)
+  } catch {
+    oldPassword = data.oldPassword
+    newPassword = data.newPassword
+  }
+
+  // 验证旧密码（这里假设 admin 密码）
+  const user = mockUsers.admin
+  if (user.password !== oldPassword) {
+    throw new Error('旧密码不正确')
+  }
+
+  // 更新密码（模拟）
+  user.password = newPassword
+}
+
+/** Mock: 上传头像 */
+export async function mockUploadAvatar(file: File): Promise<string> {
+  await delay(1500)
+
+  // 模拟上传，返回一个 Base64 数据 URL
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      mockUsers.admin.info.avatar = reader.result as string
+      resolve(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+  })
 }

@@ -65,6 +65,25 @@
               </template>
             </el-dropdown>
 
+            <!-- 主题切换 -->
+            <el-dropdown trigger="click" @command="handleThemeChange">
+              <div class="theme-switch">
+                <el-icon><Brush /></el-icon>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item
+                    v-for="theme in themeOptions"
+                    :key="theme.value"
+                    :command="theme.value"
+                    :disabled="theme.value === appStore.theme"
+                  >
+                    {{ theme.label }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+
             <el-dropdown trigger="click" @command="handleCommand">
               <div class="user-info">
                 <el-avatar :size="28" class="user-avatar">
@@ -102,7 +121,7 @@ import { useI18n } from 'vue-i18n'
 import { useAppStore } from '@/store/modules/app'
 import { useMenuStore } from '@/store/modules/menu'
 import { useUserStore } from '@/store/modules/user'
-import { Fold, Expand, Monitor } from '@element-plus/icons-vue'
+import { Fold, Expand, Monitor, Brush } from '@element-plus/icons-vue'
 import { i18n, elementLocales } from '@/i18n'
 import { ElMessage } from 'element-plus'
 
@@ -144,6 +163,13 @@ const currentLangLabel = computed(() => {
   return opt?.label || '中文'
 })
 
+/** 主题选项 */
+const themeOptions = [
+  { label: '默认', value: 'default' },
+  { label: '深色', value: 'dark' },
+  { label: '蓝色', value: 'blue' },
+]
+
 /** 切换语言 */
 function handleLangChange(lang: string) {
   i18n.global.locale.value = lang as 'zh' | 'en'
@@ -152,10 +178,16 @@ function handleLangChange(lang: string) {
   const elementLocale = elementLocales[lang]
   if (elementLocale) {
     // Element Plus 重新设置 locale
-    // 通过重新配置实现，实际项目中可以使用 provide/inject 方案
+    // 通过重新配置来实现，实际项目中可以使用 provide/inject 方案
     window.location.reload()
   }
   ElMessage.success(t('toast.switchLangSuccess'))
+}
+
+/** 切换主题 */
+function handleThemeChange(theme: string) {
+  appStore.setTheme(theme)
+  ElMessage.success(t('toast.switchThemeSuccess'))
 }
 
 function toggleSidebar() {
@@ -165,6 +197,8 @@ function toggleSidebar() {
 async function handleCommand(command: string) {
   if (command === 'logout') {
     await userStore.logout()
+  } else if (command === 'profile') {
+    router.push('/profile')
   }
 }
 </script>
@@ -180,7 +214,7 @@ async function handleCommand(command: string) {
 }
 
 .layout-aside {
-  background-color: #001529;
+  background-color: var(--bg-sidebar, #001529);
   transition: width 0.3s;
   overflow: hidden;
 
@@ -199,19 +233,29 @@ async function handleCommand(command: string) {
   .sidebar-menu {
     border-right: none;
     background-color: transparent;
+    --el-menu-bg-color: transparent;
+    --el-menu-text-color: var(--text-sidebar, rgba(255, 255, 255, 0.65));
+    --el-menu-hover-bg-color: var(--bg-sidebar-hover, rgba(255, 255, 255, 0.08));
+    --el-menu-item-hover-fill: var(--bg-sidebar-hover, rgba(255, 255, 255, 0.08));
+    --el-menu-active-color: var(--theme-primary, #409EFF);
 
+    :deep(.el-sub-menu .el-menu-item),
     :deep(.el-menu-item),
     :deep(.el-sub-menu__title) {
-      color: rgba(255, 255, 255, 0.65);
+      color: var(--text-sidebar, rgba(255, 255, 255, 0.65));
 
       &:hover {
-        background-color: rgba(255, 255, 255, 0.08);
-        color: #fff;
+        background-color: var(--bg-sidebar-hover, rgba(255, 255, 255, 0.08));
+        color: var(--text-sidebar-hover, #fff);
       }
     }
 
+    :deep(.el-sub-menu .el-sub-menu__title):hover {
+      background-color: var(--bg-sidebar-hover, rgba(255, 255, 255, 0.08));
+    }
+
     :deep(.el-menu-item.is-active) {
-      background-color: $primary-color;
+      background-color: var(--bg-sidebar-active, #409EFF);
       color: #fff;
     }
   }
@@ -227,9 +271,9 @@ async function handleCommand(command: string) {
   align-items: center;
   justify-content: space-between;
   padding: 0 $spacing-lg;
-  background-color: $bg-white;
-  border-bottom: 1px solid $border-color-light;
-  box-shadow: $shadow-light;
+  background-color: var(--bg-header, #FFFFFF);
+  border-bottom: 1px solid var(--border-color-light, #E4E7ED);
+  box-shadow: var(--shadow-light, 0 2px 12px 0 rgba(0, 0, 0, 0.1));
 
   .header-left {
     display: flex;
@@ -242,7 +286,7 @@ async function handleCommand(command: string) {
       transition: color 0.2s;
 
       &:hover {
-        color: $primary-color;
+        color: var(--theme-primary, #409EFF);
       }
     }
   }
@@ -257,15 +301,27 @@ async function handleCommand(command: string) {
       align-items: center;
       gap: 4px;
       cursor: pointer;
-      color: $text-regular;
+      color: var(--text-regular, #606266);
       transition: color 0.2s;
 
       &:hover {
-        color: $primary-color;
+        color: var(--theme-primary, #409EFF);
       }
 
       .lang-text {
         font-size: 14px;
+      }
+    }
+
+    .theme-switch {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      color: var(--text-regular, #606266);
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--theme-primary, #409EFF);
       }
     }
 
@@ -276,20 +332,20 @@ async function handleCommand(command: string) {
       cursor: pointer;
 
       .user-avatar {
-        background-color: $primary-color;
+        background-color: var(--theme-primary, #409EFF);
         color: #fff;
       }
 
       .username {
         font-size: 14px;
-        color: $text-primary;
+        color: var(--text-primary, #303133);
       }
     }
   }
 }
 
 .layout-main {
-  background-color: $bg-color;
+  background-color: var(--bg-color, #F5F7FA);
   padding: $spacing-lg;
   overflow-y: auto;
 }

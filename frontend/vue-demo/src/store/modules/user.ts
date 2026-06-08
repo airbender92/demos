@@ -55,6 +55,12 @@ export const useUserStore = defineStore('user', {
       setUserInfo(data)
     },
 
+    /** 更新用户信息 */
+    updateUserInfo(info: UserInfo): void {
+      this.userInfo = info
+      setUserInfo(info)
+    },
+
     /** 退出登录 */
     async logout(): Promise<void> {
       try {

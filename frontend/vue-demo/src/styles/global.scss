@@ -15,8 +15,8 @@ html, body {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
-  color: $text-primary;
-  background-color: $bg-color;
+  color: var(--text-primary, #303133);
+  background-color: var(--bg-color, #F5F7FA);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -27,7 +27,7 @@ html, body {
 }
 
 a {
-  color: $primary-color;
+  color: var(--theme-primary, #409EFF);
   text-decoration: none;
 
   &:hover {
@@ -48,4 +48,37 @@ a {
 
 ::-webkit-scrollbar-track {
   background-color: transparent;
+}
+
+// Element Plus 主题变量覆盖
+.el-button--primary {
+  --el-button-bg-color: var(--theme-primary, #409EFF);
+  --el-button-border-color: var(--theme-primary, #409EFF);
+  --el-button-hover-bg-color: var(--theme-primary-light, #66b1ff);
+  --el-button-hover-border-color: var(--theme-primary-light, #66b1ff);
+  --el-button-active-bg-color: var(--theme-primary-dark, #337ecc);
+  --el-button-active-border-color: var(--theme-primary-dark, #337ecc);
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--theme-primary, #409EFF) inset;
+}
+
+// Element Plus 菜单组件变量覆盖（侧边栏暗色主题）
+.el-menu--horizontal,
+.el-menu {
+  --el-menu-bg-color: var(--bg-sidebar, #001529);
+  --el-menu-text-color: var(--text-sidebar, rgba(255, 255, 255, 0.65));
+  --el-menu-hover-bg-color: var(--bg-sidebar-hover, rgba(255, 255, 255, 0.08));
+  --el-menu-item-hover-bg-color: var(--bg-sidebar-hover, rgba(255, 255, 255, 0.08));
+  --el-menu-active-color: var(--theme-primary, #409EFF);
+}
+
+// Element Plus 侧边栏子菜单弹窗样式（popper 渲染到 body）
+.el-menu--popup.el-menu--vertical {
+  --el-menu-bg-color: var(--bg-sidebar, #001529) !important;
+  --el-menu-text-color: var(--text-sidebar, rgba(255, 255, 255, 0.65)) !important;
+  --el-menu-hover-bg-color: var(--bg-sidebar-hover, rgba(255, 255, 255, 0.08)) !important;
+  background-color: var(--el-menu-bg-color) !important;
+  border: none !important;
 }

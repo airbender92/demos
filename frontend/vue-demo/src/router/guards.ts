@@ -8,7 +8,7 @@ import { useMenuStore } from '@/store/modules/menu'
 const whiteList = ['/login']
 
 export function setupGuards(router: Router): void {
-  router.beforeEach(async (to, from, next) => {
+  router.beforeEach(async (to, _from, next) => {
     const token = getToken()
     const userStore = useUserStore()
     const menuStore = useMenuStore()
@@ -27,21 +27,34 @@ export function setupGuards(router: Router): void {
           if (!userStore.userInfo) {
             await userStore.fetchUserInfo()
           }
-          // 获取菜单并同步权限
-          await menuStore.fetchMenus()
-          // 从用户信息中同步权限
-          if (userStore.userInfo?.permissions) {
-            menuStore.setPermissions(userStore.userInfo.permissions)
-          }
-          next({ ...to, replace: true })
         } catch {
           userStore.resetState()
           menuStore.resetMenuState()
           next(`/login?redirect=${to.path}`)
+          return
         }
-      } else {
-        next()
       }
+
+      // 确保菜单已加载
+      if (menuStore.menus.length === 0) {
+        try {
+          await menuStore.fetchMenus()
+          // 从用户信息中同步权限
+          const info = userStore.userInfo as UserInfo | null
+          if (info?.permissions) {
+            menuStore.setPermissions(info.permissions)
+          }
+          next({ ...to, replace: true })
+          return
+        } catch {
+          userStore.resetState()
+          menuStore.resetMenuState()
+          next(`/login?redirect=${to.path}`)
+          return
+        }
+      }
+
+      next()
     } else {
       // 未登录
       if (whiteList.includes(to.path)) {

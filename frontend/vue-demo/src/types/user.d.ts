@@ -6,6 +6,8 @@ interface UserInfo {
   username: string
   nickname: string
   avatar: string
+  email?: string
+  phone?: string
   roles: string[]
   permissions: string[]
 }

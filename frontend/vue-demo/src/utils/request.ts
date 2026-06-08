@@ -59,8 +59,9 @@ class Request {
         this.addPending(config)
 
         // 请求缓存（仅 GET）
-        if (config.method?.toLowerCase() === 'get' && config.cache !== false) {
-          const cacheKey = generateCacheKey(config)
+        const customConfig = config as CustomAxiosRequestConfig
+        if (customConfig.method?.toLowerCase() === 'get' && customConfig.cache !== false) {
+          const cacheKey = generateCacheKey(customConfig)
           const cached = this.cacheMap.get(cacheKey)
           if (cached && cached.expire > Date.now()) {
             // 取消当前请求，使用缓存
@@ -86,7 +87,7 @@ class Request {
 
         // 缓存 GET 响应
         if (config.method?.toLowerCase() === 'get') {
-          const cacheKey = generateCacheKey(config)
+          const cacheKey = generateCacheKey(config as CustomAxiosRequestConfig)
           this.cacheMap.set(cacheKey, {
             data,
             expire: Date.now() + this.cacheTime,
@@ -112,7 +113,7 @@ class Request {
           return Promise.reject(new Error(message || '请求失败'))
         }
 
-        return data
+        return response
       },
       (error) => {
         // 移除失败请求

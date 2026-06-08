@@ -6,13 +6,16 @@ import {
   mockGetUserMenus,
   mockLogout,
   mockSSOVerify,
+  mockUpdateUserProfile,
+  mockChangePassword,
+  mockUploadAvatar,
 } from '@/mock'
 import { encryptFields } from '@/utils/crypto'
 
 /** 用户登录 - 自动 AES 加密参数 */
 export async function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
-  const encrypted = encryptFields(data, ['username', 'password'])
-  const res = await mockLogin(encrypted.username, encrypted.password)
+  const encrypted = encryptFields(data as unknown as Record<string, unknown>, ['username', 'password'])
+  const res = await mockLogin(encrypted.username as string, encrypted.password as string)
   return { code: 200, message: 'success', data: res }
 }
 
@@ -38,4 +41,33 @@ export async function getUserMenus(): Promise<ApiResponse<MenuItem[]>> {
 export async function logout(): Promise<ApiResponse<void>> {
   await mockLogout()
   return { code: 200, message: 'success', data: undefined }
+}
+
+/** 更新用户资料 */
+export async function updateUserProfile(data: {
+  nickname: string
+  email: string
+  phone: string
+}): Promise<ApiResponse<UserInfo>> {
+  const res = await mockUpdateUserProfile(data)
+  return { code: 200, message: 'success', data: res }
+}
+
+/** 修改密码 - 加密敏感字段 */
+export async function changePassword(data: {
+  oldPassword: string
+  newPassword: string
+}): Promise<ApiResponse<void>> {
+  const encrypted = encryptFields(data as unknown as Record<string, unknown>, ['oldPassword', 'newPassword'])
+  await mockChangePassword({
+    oldPassword: encrypted.oldPassword as string,
+    newPassword: encrypted.newPassword as string,
+  })
+  return { code: 200, message: 'success', data: undefined }
+}
+
+/** 上传头像 */
+export async function uploadAvatar(file: File): Promise<ApiResponse<string>> {
+  const res = await mockUploadAvatar(file)
+  return { code: 200, message: 'success', data: res }
 }

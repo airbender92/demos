@@ -1,0 +1,27 @@
+// 深色主题
+[data-theme="dark"] {
+  --theme-primary: #409EFF;
+  --theme-primary-light: #66b1ff;
+  --theme-primary-dark: #337ecc;
+  
+  --bg-color: #1a1a2e;
+  --bg-white: #16213e;
+  --bg-sidebar: #0f3460;
+  --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
+  --bg-sidebar-active: #409EFF;
+  --bg-header: #16213e;
+  --bg-card: #16213e;
+  
+  --text-primary: #e0e0e0;
+  --text-regular: #b0b0b0;
+  --text-secondary: #808080;
+  --text-placeholder: #606060;
+  --text-sidebar: rgba(255, 255, 255, 0.75);
+  --text-sidebar-hover: #FFFFFF;
+  
+  --border-color: #2a2a4a;
+  --border-color-light: #2a2a4a;
+  
+  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 16px 0 rgba(0, 0, 0, 0.4);
+}

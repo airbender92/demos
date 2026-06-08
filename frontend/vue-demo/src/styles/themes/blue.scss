@@ -1,0 +1,27 @@
+// 蓝色主题
+[data-theme="blue"] {
+  --theme-primary: #0052cc;
+  --theme-primary-light: #3375e0;
+  --theme-primary-dark: #003d99;
+  
+  --bg-color: #f0f4f8;
+  --bg-white: #FFFFFF;
+  --bg-sidebar: #1e3a5f;
+  --bg-sidebar-hover: rgba(255, 255, 255, 0.1);
+  --bg-sidebar-active: #0052cc;
+  --bg-header: #FFFFFF;
+  --bg-card: #FFFFFF;
+  
+  --text-primary: #1a1a2e;
+  --text-regular: #3a3a5e;
+  --text-secondary: #6a6a8e;
+  --text-placeholder: #9a9aae;
+  --text-sidebar: rgba(255, 255, 255, 0.65);
+  --text-sidebar-hover: #FFFFFF;
+  
+  --border-color: #d0d8e0;
+  --border-color-light: #e0e8f0;
+  
+  --shadow-light: 0 2px 12px 0 rgba(0, 82, 204, 0.1);
+  --shadow-medium: 0 4px 16px 0 rgba(0, 82, 204, 0.15);
+}

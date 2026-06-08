@@ -6,6 +6,7 @@ interface AppState {
   sidebarCollapsed: boolean
   loading: boolean
   locale: string
+  theme: string
 }
 
 export const useAppStore = defineStore('app', {
@@ -13,6 +14,7 @@ export const useAppStore = defineStore('app', {
     sidebarCollapsed: false,
     loading: false,
     locale: localStorage.getItem('vue_demo_locale') || 'zh',
+    theme: localStorage.getItem('vue_demo_theme') || 'default',
   }),
 
   actions: {
@@ -35,6 +37,27 @@ export const useAppStore = defineStore('app', {
     setLocale(locale: string): void {
       this.locale = locale
       localStorage.setItem('vue_demo_locale', locale)
+    },
+
+    /** 设置主题 */
+    setTheme(theme: string): void {
+      this.theme = theme
+      localStorage.setItem('vue_demo_theme', theme)
+      this.applyTheme(theme)
+    },
+
+    /** 应用主题 */
+    applyTheme(theme: string): void {
+      if (theme === 'default') {
+        document.documentElement.removeAttribute('data-theme')
+      } else {
+        document.documentElement.setAttribute('data-theme', theme)
+      }
+    },
+
+    /** 初始化主题 */
+    initTheme(): void {
+      this.applyTheme(this.theme)
     },
   },
 })
