@@ -85,6 +85,13 @@ const mockMenus: Record<string, MenuItem[]> = {
         },
       ],
     },
+    {
+      id: '4',
+      title: 'menu.aiChat',
+      icon: 'ChatDotRound',
+      path: '/chat',
+      name: 'Chat',
+    },
   ],
   user: [
     {
@@ -100,6 +107,13 @@ const mockMenus: Record<string, MenuItem[]> = {
       icon: 'User',
       path: '/profile',
       name: 'Profile',
+    },
+    {
+      id: '3',
+      title: 'menu.aiChat',
+      icon: 'ChatDotRound',
+      path: '/chat',
+      name: 'Chat',
     },
   ],
 }

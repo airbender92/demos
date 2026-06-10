@@ -38,6 +38,16 @@ export const constantRoutes: RouteRecordRaw[] = [
           requiresAuth: true,
         },
       },
+      {
+        path: 'chat',
+        name: 'Chat',
+        component: () => import('@/views/chat/index.vue'),
+        meta: {
+          title: 'AI 对话',
+          icon: 'ChatDotRound',
+          requiresAuth: true,
+        },
+      },
     ],
   },
 ]
