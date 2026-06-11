@@ -15,9 +15,20 @@
         </el-button>
       </div>
 
+      <!-- 搜索框 -->
+      <div class="sidebar-search">
+        <el-input
+          v-model="searchKeyword"
+          :placeholder="t('chat.searchPlaceholder')"
+          :prefix-icon="Search"
+          clearable
+          size="small"
+        />
+      </div>
+
       <div class="session-list">
         <div
-          v-for="session in chatStore.sessions"
+          v-for="session in filteredSessions"
           :key="session.id"
           class="session-item"
           :class="{ active: session.id === chatStore.activeSessionId }"
@@ -31,11 +42,36 @@
             <Delete />
           </el-icon>
         </div>
+        <div v-if="filteredSessions.length === 0" class="no-results">
+          {{ t('chat.noResults') }}
+        </div>
+      </div>
+
+      <!-- 上下文配置按钮 -->
+      <div class="sidebar-footer">
+        <el-button
+          text
+          size="small"
+          @click="showContextPanel = true"
+          class="context-btn"
+        >
+          <el-icon><Setting /></el-icon>
+          {{ t('chat.contextSettings') }}
+        </el-button>
       </div>
     </div>
 
     <!-- 右侧对话区域 -->
     <div class="chat-main">
+      <!-- 上下文信息条 -->
+      <div v-if="chatStore.currentContextTokens > 0" class="context-bar">
+        <el-tooltip :content="t('chat.contextTooltip')" placement="top">
+          <span class="context-info">
+            {{ t('chat.contextTokens', { count: chatStore.currentContextTokens }) }}
+          </span>
+        </el-tooltip>
+      </div>
+
       <!-- 消息列表 -->
       <div class="messages-container" ref="messagesContainerRef">
         <div v-if="chatStore.activeMessages.length === 0" class="empty-chat">
@@ -104,7 +140,6 @@
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- 输入区域 -->
@@ -141,13 +176,51 @@
         </div>
       </div>
     </div>
+
+    <!-- 上下文配置弹窗 -->
+    <el-dialog
+      v-model="showContextPanel"
+      :title="t('chat.contextSettingsTitle')"
+      width="500px"
+    >
+      <el-form label-position="top">
+        <el-form-item :label="t('chat.maxTokens')">
+          <el-slider
+            v-model="localContextConfig.maxTokens"
+            :min="512"
+            :max="32768"
+            :step="512"
+            show-input
+          />
+        </el-form-item>
+        <el-form-item :label="t('chat.maxMessages')">
+          <el-slider
+            v-model="localContextConfig.maxMessages"
+            :min="1"
+            :max="50"
+            :step="1"
+            show-input
+          />
+        </el-form-item>
+        <el-form-item :label="t('chat.strategy')">
+          <el-radio-group v-model="localContextConfig.strategy">
+            <el-radio value="sliding">{{ t('chat.strategySliding') }}</el-radio>
+            <el-radio value="truncate">{{ t('chat.strategyTruncate') }}</el-radio>
+          </el-radio-group>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showContextPanel = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveContextConfig">{{ t('common.confirm') }}</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useChatStore } from '@/store/modules/chat'
+import { useChatStore, type ContextConfig } from '@/store/modules/chat'
 import { mockSSEStream } from '@/utils/sse-client'
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import {
@@ -159,6 +232,8 @@ import {
   Promotion,
   VideoPause,
   ChatDotRound,
+  Search,
+  Setting,
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -169,6 +244,19 @@ const inputText = ref('')
 const messagesContainerRef = ref<HTMLElement>()
 let abortController: AbortController | null = null
 let autoScroll = true
+const searchKeyword = ref('')
+const showContextPanel = ref(false)
+const localContextConfig = ref<ContextConfig>({ ...chatStore.contextConfig })
+
+/** 过滤后的会话列表 */
+const filteredSessions = computed(() => {
+  if (!searchKeyword.value.trim()) return chatStore.sessions
+  const keyword = searchKeyword.value.toLowerCase()
+  return chatStore.sessions.filter((s) =>
+    s.title.toLowerCase().includes(keyword) ||
+    s.messages.some((m: any) => m.content.toLowerCase().includes(keyword))
+  )
+})
 
 /** 判断是否在底部附近（阈值 50px） */
 function isNearBottom(): boolean {
@@ -179,11 +267,10 @@ function isNearBottom(): boolean {
 
 // 监听用户滚动事件，判断是否在底部
 onMounted(() => {
-  if (!chatStore.activeSessionId) {
-    chatStore.createSession()
-  }
+  chatStore.init().then(() => {
+    localContextConfig.value = { ...chatStore.contextConfig }
+  })
 
-  // 等待 DOM 更新后监听滚动
   nextTick(() => {
     if (messagesContainerRef.value) {
       messagesContainerRef.value.addEventListener('scroll', () => {
@@ -202,8 +289,8 @@ async function scrollToBottom(force = false) {
 }
 
 /** 新建对话 */
-function handleNewChat() {
-  chatStore.createSession()
+async function handleNewChat() {
+  await chatStore.createSession()
   inputText.value = ''
 }
 
@@ -220,7 +307,7 @@ async function handleDeleteSession(sessionId: string) {
       cancelButtonText: t('common.cancel'),
       type: 'warning',
     })
-    chatStore.deleteSession(sessionId)
+    await chatStore.deleteSession(sessionId)
     ElMessage.success(t('chat.deleteSuccess'))
   } catch {
     // 取消删除
@@ -235,11 +322,11 @@ async function handleSend() {
   inputText.value = ''
 
   // 添加用户消息
-  chatStore.addUserMessage(text)
+  await chatStore.addUserMessage(text)
   await scrollToBottom(true)
 
   // 创建 AI 消息
-  chatStore.createAssistantMessage()
+  await chatStore.createAssistantMessage()
 
   // 发起流式请求
   abortController = mockSSEStream(text, {
@@ -288,7 +375,7 @@ async function handleDeleteMessage(messageId: string) {
       cancelButtonText: t('common.cancel'),
       type: 'warning',
     })
-    chatStore.deleteMessage(messageId)
+    await chatStore.deleteMessage(messageId)
     ElMessage.success(t('chat.deleteMessageSuccess'))
   } catch {
     // 取消删除
@@ -297,10 +384,10 @@ async function handleDeleteMessage(messageId: string) {
 
 /** 重新生成 */
 async function handleRegenerate() {
-  const content = chatStore.regenerateLast()
+  const content = await chatStore.regenerateLast()
   if (!content) return
 
-  chatStore.createAssistantMessage()
+  await chatStore.createAssistantMessage()
   await scrollToBottom(true)
 
   abortController = mockSSEStream(content, {
@@ -321,6 +408,13 @@ async function handleRegenerate() {
       abortController = null
     },
   })
+}
+
+/** 保存上下文配置 */
+async function handleSaveContextConfig() {
+  await chatStore.updateContextConfig(localContextConfig.value)
+  showContextPanel.value = false
+  ElMessage.success(t('chat.contextSaved'))
 }
 
 /** 判断是否是最后一条消息 */
@@ -352,6 +446,11 @@ function isLastMessage(messageId: string): boolean {
     .new-chat-btn {
       width: 100%;
     }
+  }
+
+  .sidebar-search {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-color-light, #E4E7ED);
   }
 
   .session-list {
@@ -405,6 +504,27 @@ function isLastMessage(messageId: string): boolean {
         }
       }
     }
+
+    .no-results {
+      text-align: center;
+      color: #909399;
+      padding: 20px;
+      font-size: 13px;
+    }
+  }
+
+  .sidebar-footer {
+    padding: 8px 16px;
+    border-top: 1px solid var(--border-color-light, #E4E7ED);
+
+    .context-btn {
+      width: 100%;
+      color: #909399;
+
+      &:hover {
+        color: var(--theme-primary, #409EFF);
+      }
+    }
   }
 }
 
@@ -413,6 +533,20 @@ function isLastMessage(messageId: string): boolean {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.context-bar {
+  display: flex;
+  justify-content: center;
+  padding: 4px 16px;
+  background-color: var(--bg-color, #F5F7FA);
+  border-bottom: 1px solid var(--border-color-light, #E4E7ED);
+
+  .context-info {
+    font-size: 12px;
+    color: #909399;
+    cursor: help;
+  }
 }
 
 .messages-container {
