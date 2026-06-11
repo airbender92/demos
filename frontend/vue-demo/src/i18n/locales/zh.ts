@@ -104,5 +104,9 @@ export default {
     copySuccess: '复制成功',
     copyFailed: '复制失败',
     stopped: '已停止生成',
+    deleteMessage: '删除',
+    confirmDeleteMessage: '确定删除此消息吗？',
+    deleteMessageTitle: '删除消息',
+    deleteMessageSuccess: '消息已删除',
   },
 }

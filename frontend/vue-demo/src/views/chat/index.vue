@@ -60,6 +60,12 @@
 
             <!-- AI 消息 -->
             <div v-else class="ai-message">
+              <!-- 流式中的思考提示显示在内容上方 -->
+              <div v-if="msg.status === 'streaming'" class="thinking-indicator">
+                <el-icon class="loading-icon"><Loading /></el-icon>
+                <span class="loading-text">{{ t('chat.thinking') }}</span>
+              </div>
+
               <MarkdownRenderer :content="msg.content" />
               <div v-if="msg.status === 'error'" class="error-text">
                 {{ t('chat.streamError') }}
@@ -80,6 +86,15 @@
               <el-button
                 text
                 size="small"
+                @click="handleDeleteMessage(msg.id)"
+                v-if="msg.content && msg.status !== 'streaming'"
+              >
+                <el-icon><Delete /></el-icon>
+                {{ t('chat.deleteMessage') }}
+              </el-button>
+              <el-button
+                text
+                size="small"
                 @click="handleRegenerate"
                 v-if="msg.role === 'assistant' && msg.status === 'done' && isLastMessage(msg.id)"
               >
@@ -90,18 +105,6 @@
           </div>
         </div>
 
-        <!-- 打字指示器 -->
-        <div v-if="chatStore.isStreaming" class="message-item assistant">
-          <div class="message-avatar">
-            <el-avatar :size="32" style="background-color: #67C23A">AI</el-avatar>
-          </div>
-          <div class="message-content">
-            <div class="ai-message">
-              <el-icon class="loading-icon"><Loading /></el-icon>
-              <span class="loading-text">{{ t('chat.thinking') }}</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- 输入区域 -->
@@ -165,18 +168,35 @@ const chatStore = useChatStore()
 const inputText = ref('')
 const messagesContainerRef = ref<HTMLElement>()
 let abortController: AbortController | null = null
+let autoScroll = true
 
-// 初始化时确保有活跃会话
+/** 判断是否在底部附近（阈值 50px） */
+function isNearBottom(): boolean {
+  if (!messagesContainerRef.value) return true
+  const el = messagesContainerRef.value
+  return el.scrollHeight - el.scrollTop - el.clientHeight < 50
+}
+
+// 监听用户滚动事件，判断是否在底部
 onMounted(() => {
   if (!chatStore.activeSessionId) {
     chatStore.createSession()
   }
+
+  // 等待 DOM 更新后监听滚动
+  nextTick(() => {
+    if (messagesContainerRef.value) {
+      messagesContainerRef.value.addEventListener('scroll', () => {
+        autoScroll = isNearBottom()
+      })
+    }
+  })
 })
 
-/** 滚动到底部 */
-async function scrollToBottom() {
+/** 滚动到底部（流式中根据用户滚动位置决定是否自动滚动） */
+async function scrollToBottom(force = false) {
   await nextTick()
-  if (messagesContainerRef.value) {
+  if (messagesContainerRef.value && (force || autoScroll)) {
     messagesContainerRef.value.scrollTop = messagesContainerRef.value.scrollHeight
   }
 }
@@ -216,7 +236,7 @@ async function handleSend() {
 
   // 添加用户消息
   chatStore.addUserMessage(text)
-  await scrollToBottom()
+  await scrollToBottom(true)
 
   // 创建 AI 消息
   chatStore.createAssistantMessage()
@@ -232,7 +252,9 @@ async function handleSend() {
       abortController = null
     },
     onError: (error) => {
-      if (error.message !== '请求已中断') {
+      if (error.message === '请求已中断') {
+        chatStore.finishStreamingMessage()
+      } else {
         chatStore.setMessageError()
       }
       abortController = null
@@ -258,13 +280,28 @@ async function handleCopyMessage(messageId: string) {
   }
 }
 
+/** 删除单条消息 */
+async function handleDeleteMessage(messageId: string) {
+  try {
+    await ElMessageBox.confirm(t('chat.confirmDeleteMessage'), t('chat.deleteMessageTitle'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning',
+    })
+    chatStore.deleteMessage(messageId)
+    ElMessage.success(t('chat.deleteMessageSuccess'))
+  } catch {
+    // 取消删除
+  }
+}
+
 /** 重新生成 */
 async function handleRegenerate() {
   const content = chatStore.regenerateLast()
   if (!content) return
 
   chatStore.createAssistantMessage()
-  await scrollToBottom()
+  await scrollToBottom(true)
 
   abortController = mockSSEStream(content, {
     onMessage: (chunk) => {
@@ -276,7 +313,9 @@ async function handleRegenerate() {
       abortController = null
     },
     onError: (error) => {
-      if (error.message !== '请求已中断') {
+      if (error.message === '请求已中断') {
+        chatStore.finishStreamingMessage()
+      } else {
         chatStore.setMessageError()
       }
       abortController = null
@@ -412,7 +451,7 @@ function isLastMessage(messageId: string): boolean {
         color: #fff;
         padding: 12px 16px;
         border-radius: 12px;
-        max-width: 70%;
+        max-width: 85%;
         word-wrap: break-word;
         line-height: 1.5;
       }
@@ -427,7 +466,7 @@ function isLastMessage(messageId: string): boolean {
     .message-content {
       display: flex;
       flex-direction: column;
-      max-width: 75%;
+      max-width: 90%;
       min-width: 0;
 
       .ai-message {
@@ -435,6 +474,22 @@ function isLastMessage(messageId: string): boolean {
         padding: 12px 16px;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+        .thinking-indicator {
+          display: flex;
+          align-items: center;
+          margin-bottom: 8px;
+
+          .loading-icon {
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+          }
+
+          .loading-text {
+            color: #909399;
+            font-size: 13px;
+          }
+        }
 
         .loading-icon {
           animation: spin 1s linear infinite;

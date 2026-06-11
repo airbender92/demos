@@ -168,6 +168,19 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  /** 删除单条消息 */
+  function deleteMessage(messageId: string): boolean {
+    const session = sessions.value.find((s) => s.id === activeSessionId.value)
+    if (!session) return false
+
+    const index = session.messages.findIndex((m) => m.id === messageId)
+    if (index === -1) return false
+
+    session.messages.splice(index, 1)
+    session.updatedAt = Date.now()
+    return true
+  }
+
   /** 重新生成最后一条 AI 回复 */
   function regenerateLast(): string | null {
     const session = sessions.value.find((s) => s.id === activeSessionId.value)
@@ -206,6 +219,7 @@ export const useChatStore = defineStore('chat', () => {
     finishStreamingMessage,
     setMessageError,
     copyMessage,
+    deleteMessage,
     regenerateLast,
   }
 })

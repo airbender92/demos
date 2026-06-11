@@ -104,5 +104,9 @@ export default {
     copySuccess: 'Copied successfully',
     copyFailed: 'Copy failed',
     stopped: 'Generation stopped',
+    deleteMessage: 'Delete',
+    confirmDeleteMessage: 'Are you sure you want to delete this message?',
+    deleteMessageTitle: 'Delete Message',
+    deleteMessageSuccess: 'Message deleted',
   },
 }
